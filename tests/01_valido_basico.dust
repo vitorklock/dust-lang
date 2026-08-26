@@ -1,0 +1,7 @@
+# 01: declaracao, atribuicao (fluxo) e saida
+circuit [
+    5 -> dust signal;
+    signal + 2 -> signal;
+    signal -> lamp;
+    "done" -> lamp;
+]

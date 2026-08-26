@@ -1,0 +1,32 @@
+# 02: condicional, repeticao, entrada/saida e precedencia
+circuit [
+    dust base;
+    2 + 3 * 4 -> base;            # deve valer 14, nao 20
+    (2 + 3) * 4 -> dust grouped;  # deve valer 20
+    10.5 -> comparator charge;
+    on -> lever running;
+
+    "How many ticks?" -> lamp;
+    button -> base;
+
+    clock (base > 0) [
+        base -> lamp;
+        charge + 2 * 1.5 -> charge;
+        base - 1 -> base;
+    ]
+
+    observer (charge >= 15) [
+        "Fully powered!" -> lamp;
+        grouped -> lamp;
+    ] torch [
+        "Not enough signal." -> lamp;
+    ]
+
+    observer (running) [
+        "Circuit still on." -> lamp;
+    ]
+    torch running -> lever stopped;   # torch como inversor: stopped = NOT running
+    observer (torch stopped) [        # if (!stopped)
+        "Inverter works." -> lamp;
+    ]
+]

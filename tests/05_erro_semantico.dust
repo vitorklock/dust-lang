@@ -1,0 +1,5 @@
+# 05: texto fluindo para variavel + uso sem declaracao
+circuit [
+    "hello" -> dust x;
+    y + 1 -> y;
+]

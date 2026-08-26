@@ -1,0 +1,5 @@
+# 04: fluxo sem destino viola <Flow> ::= (string | Expr) "->" <Dest> ";"
+circuit [
+    3 -> dust x;
+    x + 1 -> ;
+]

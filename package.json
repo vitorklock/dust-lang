@@ -1,0 +1,21 @@
+{
+  "name": "dust-transpiler",
+  "version": "1.0.0",
+  "description": "Dust (Redstone-themed language) to C transpiler",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "bash run_tests.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^26.3.0",
+    "typescript": "^7.0.2"
+  }
+}
