@@ -1,0 +1,4 @@
+
+circuit [
+    "hello world" -> lamp;
+]
