@@ -45,7 +45,6 @@ Per-area conventions live in `.claude/rules/` and load when matching files are t
 9. **Diagnostics are pt-BR, code is English**: the error messages are read aloud to a Portuguese-speaking professor during the demo, so the *strings* passed to those three error classes (and the CLI usage line) stay in pt-BR. Identifiers, comments, docs and file names are English.
 10. **Test file names come from the assignment** (`01_valido_basico` ... `05_erro_semantico`): Portuguese on purpose, keep them. The generated `tests/*.c` are graded deliverables: after any codegen change, rerun `npm test` and compile them with `gcc -Wall`.
 11. **`lever` is `int` in C**: `on`/`off` become `1`/`0`, no `<stdbool.h>`. `comparator` is `float`, and real literals are emitted with the `f` suffix so C does not promote to double.
-12. **`src/` predates this guide** and still uses 2-space indent, `;` on interface members and pt-BR comments. Until it is aligned, never mix styles inside one file: either align the whole file to the Style section or match what is already there.
 
 ## Style
 

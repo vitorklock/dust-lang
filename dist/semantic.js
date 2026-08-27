@@ -1,9 +1,10 @@
 "use strict";
-// semantic.ts — Análise semântica mínima
-// Tabela de símbolos (nome -> tipo, linha) + as regras da especificação:
-//  1. uso antes da declaração        4. condição nua exige lever
-//  2. redeclaração                   5. button exige dust/comparator
-//  3. compatibilidade de tipos nos fluxos e nas expressões
+// semantic.ts: minimal semantic analysis.
+// Symbol table (name -> type, line) plus the six rules of the specification (section 6):
+//  1. use before declaration              4. bare condition must be a lever
+//  2. redeclaration                       5. button only feeds dust/comparator
+//  3. type compatibility in flows         6. unary torch only inverts a lever
+//     and expressions
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SemanticAnalyzer = exports.SemanticError = void 0;
 class SemanticError extends Error {
@@ -45,7 +46,7 @@ class SemanticAnalyzer {
                 break;
             }
             case "Print": {
-                this.expr(s.value); // qualquer tipo (inclusive texto) pode energizar a lâmpada
+                this.expr(s.value); // any type, text included, may power the lamp
                 break;
             }
             case "Read": {
@@ -69,7 +70,7 @@ class SemanticAnalyzer {
             }
         }
     }
-    // regra 3: o que pode fluir para cada tipo
+    // rule 3: what may flow into each type
     checkFlowInto(source, dest, name, line) {
         if (source === "sign") {
             throw new SemanticError(`texto só energiza lâmpadas; não pode fluir para a variável '${name}'`, line);
@@ -77,22 +78,23 @@ class SemanticAnalyzer {
         if (source === dest)
             return;
         if (source === "dust" && dest === "comparator")
-            return; // promoção int -> float
+            return; // promotion int -> float
         if (source === "comparator" && dest === "dust") {
             throw new SemanticError(`sinal analógico (comparator) não flui para '${name}' (dust) sem perda`, line);
         }
-        // lever <-> numérico, numérico -> lever
+        // lever <-> numeric in either direction
         throw new SemanticError(`tipos incompatíveis: ${source} não flui para '${name}' (${dest})`, line);
     }
-    // regra 4: condição sem operador relacional deve ser lever
+    // rule 4: a condition without a relational operator must be a lever
     condition(e) {
         const t = this.expr(e);
         if (e.kind === "Compare")
-            return; // Compare já é lógico
+            return; // Compare is already logical
         if (t !== "lever") {
             throw new SemanticError(`condição sem comparação deve ser lever; expressão é ${t}`, e.line);
         }
     }
+    // rule 1
     lookup(name, line) {
         const info = this.symbols.get(name);
         if (!info) {
@@ -100,7 +102,7 @@ class SemanticAnalyzer {
         }
         return info;
     }
-    // inferência de tipo das expressões
+    // bottom-up type inference of expressions
     expr(e) {
         switch (e.kind) {
             case "IntLit": return "dust";
@@ -109,6 +111,7 @@ class SemanticAnalyzer {
             case "StrLit": return "sign";
             case "VarRef": return this.lookup(e.name, e.line).type;
             case "Not": {
+                // rule 6
                 const t = this.expr(e.value);
                 if (t !== "lever") {
                     throw new SemanticError(`torch só inverte lever; expressão é ${t}`, e.line);

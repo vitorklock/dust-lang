@@ -1,13 +1,13 @@
 "use strict";
-// index.ts — CLI do transpilador Dust -> C
+// index.ts: command-line interface of the Dust -> C transpiler.
 //
-// Uso:
-//   node dist/index.js programa.dust            gera programa.c
-//   node dist/index.js programa.dust -o out.c   define o arquivo de saída
-//   node dist/index.js programa.dust --tokens   imprime a lista de tokens
-//   node dist/index.js programa.dust --ast      imprime a AST
+// Usage:
+//   node dist/index.js program.dust            writes program.c
+//   node dist/index.js program.dust -o out.c   sets the output file
+//   node dist/index.js program.dust --tokens   prints the token list
+//   node dist/index.js program.dust --ast      prints the AST
 //
-// Pipeline: FONTE -> LÉXICO -> TOKENS -> PARSER -> AST -> SEMÂNTICA -> C
+// Pipeline: SOURCE -> LEXER -> TOKENS -> PARSER -> AST -> SEMANTICS -> C
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -63,7 +63,7 @@ function main() {
     const inputPath = inputs[0];
     const source = fs.readFileSync(inputPath, "utf-8");
     try {
-        // 1. análise léxica
+        // 1. lexical analysis
         const tokens = (0, lexer_1.tokenize)(source);
         if (showTokens) {
             console.log("== TOKENS ==");
@@ -71,16 +71,16 @@ function main() {
                 console.log(`  linha ${String(t.line).padStart(3)}  ${t.type.padEnd(11)} '${t.lexeme}'`);
             }
         }
-        // 2. análise sintática -> AST
+        // 2. syntactic analysis -> AST
         const ast = new parser_1.Parser(tokens).parseProgram();
         if (showAst) {
             console.log("== AST ==");
             console.log((0, ast_1.dumpAst)(ast));
         }
-        // 3. análise semântica
+        // 3. semantic analysis
         const analyzer = new semantic_1.SemanticAnalyzer();
         analyzer.analyze(ast);
-        // 4. geração de código
+        // 4. code generation
         const cCode = new codegen_1.CodeGenerator(analyzer.symbols).generate(ast);
         const outPath = outArg ??
             path.join(path.dirname(inputPath), path.basename(inputPath).replace(/\.dust$/, "") + ".c");
@@ -89,6 +89,7 @@ function main() {
         return 0;
     }
     catch (err) {
+        // only the three phase errors are expected; anything else is a bug and must crash
         if (err instanceof lexer_1.LexicalError || err instanceof parser_1.SyntaxError_ || err instanceof semantic_1.SemanticError) {
             console.error(err.message);
             return 1;

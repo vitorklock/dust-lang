@@ -1,16 +1,15 @@
 "use strict";
-// ast.ts — Árvore Sintática Abstrata da linguagem Dust
-// União discriminada: cada nó carrega 'kind' e a linha de origem.
+// ast.ts: abstract syntax tree of the Dust language.
+// Discriminated union: every node carries its 'kind' and the source line.
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DUST_TYPES = void 0;
 exports.dumpAst = dumpAst;
-// Impressão da AST em árvore (usada por --ast, útil na demonstração)
+exports.DUST_TYPES = ["dust", "comparator", "lever"];
+// Tree printer behind --ast; in the demo it shows precedence living in the tree shape
 function dumpAst(node) {
     const out = ["Program"];
     const stmts = (list, pad) => {
-        list.forEach((s, i) => {
-            const last = i === list.length - 1;
-            walk(s, pad, last);
-        });
+        list.forEach((s, i) => walk(s, pad, i === list.length - 1));
     };
     const walk = (n, pad, last) => {
         const branch = pad + (last ? "└─ " : "├─ ");

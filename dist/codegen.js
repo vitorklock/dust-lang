@@ -1,14 +1,14 @@
 "use strict";
-// codegen.ts — Geração de código C percorrendo a AST
-// Só executa após léxico, sintático e semântico terem sucesso.
-// A precedência já está na forma da árvore; os parênteses emitidos
-// em BinOp/Compare apenas a preservam no texto de saída.
+// codegen.ts: C code generation by walking the AST.
+// Runs only after lexical, syntactic and semantic analysis succeeded.
+// Precedence is already in the tree shape; the parentheses emitted for
+// BinOp/Compare only preserve it in the output text.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CodeGenerator = void 0;
 const C_TYPE = {
     dust: "int",
     comparator: "float",
-    lever: "int", // on/off vira 1/0
+    lever: "int", // on/off become 1/0
 };
 const DEFAULT_VALUE = {
     dust: "0",
@@ -59,6 +59,7 @@ class CodeGenerator {
                 break;
             }
             case "Read": {
+                // safe: semantic analysis already resolved every name before codegen runs
                 const type = this.symbols.get(s.name).type;
                 const fmt = type === "comparator" ? "%f" : "%d";
                 this.emit(`scanf("${fmt}", &${s.name});`);
@@ -92,6 +93,7 @@ class CodeGenerator {
         switch (e.kind) {
             case "IntLit": return String(e.value);
             case "RealLit": {
+                // 'f' suffix keeps the literal a float, matching the comparator type
                 const s = String(e.value);
                 return (s.includes(".") ? s : s + ".0") + "f";
             }
@@ -103,6 +105,7 @@ class CodeGenerator {
             case "Not": return `(!${this.expr(e.value)})`;
         }
     }
+    // Picks %d vs %f; must agree with SemanticAnalyzer.expr's promotion rules
     exprIsFloat(e) {
         switch (e.kind) {
             case "RealLit": return true;

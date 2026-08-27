@@ -1,13 +1,13 @@
 "use strict";
-// lexer.ts — Análise léxica da linguagem Dust
-// Reconhece os tokens definidos na especificação (tabela de tokens / ER)
-// com estratégia de maior casamento (longest match) e erros com linha.
+// lexer.ts: lexical analysis of the Dust language.
+// Recognizes the tokens of the specification (token table / regular expressions)
+// with longest match and reports errors with their line.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LexicalError = exports.TokenType = void 0;
 exports.tokenize = tokenize;
 var TokenType;
 (function (TokenType) {
-    // palavras reservadas
+    // reserved words
     TokenType["CIRCUIT"] = "CIRCUIT";
     TokenType["DUST"] = "DUST";
     TokenType["COMPARATOR"] = "COMPARATOR";
@@ -19,12 +19,12 @@ var TokenType;
     TokenType["TORCH"] = "TORCH";
     TokenType["LAMP"] = "LAMP";
     TokenType["BUTTON"] = "BUTTON";
-    // literais e identificadores
+    // literals and identifiers
     TokenType["ID"] = "ID";
     TokenType["INT"] = "INT";
     TokenType["REAL"] = "REAL";
     TokenType["STRING"] = "STRING";
-    // operadores
+    // operators
     TokenType["ARROW"] = "ARROW";
     TokenType["PLUS"] = "PLUS";
     TokenType["MINUS"] = "MINUS";
@@ -36,7 +36,7 @@ var TokenType;
     TokenType["GTE"] = "GTE";
     TokenType["LT"] = "LT";
     TokenType["LTE"] = "LTE";
-    // delimitadores
+    // delimiters
     TokenType["LPAREN"] = "LPAREN";
     TokenType["RPAREN"] = "RPAREN";
     TokenType["LBRACK"] = "LBRACK";
@@ -53,6 +53,7 @@ class LexicalError extends Error {
     }
 }
 exports.LexicalError = LexicalError;
+// Looked up after the ID pattern matches, so keywords are just reserved identifiers
 const KEYWORDS = {
     circuit: TokenType.CIRCUIT,
     dust: TokenType.DUST,
@@ -76,7 +77,7 @@ function tokenize(source) {
     const push = (type, lexeme) => tokens.push({ type, lexeme, line });
     while (i < source.length) {
         const c = source[i];
-        // espaços e quebras de linha: descartados (contando linhas)
+        // whitespace and line breaks: discarded (lines are counted for error messages)
         if (c === " " || c === "\t" || c === "\r") {
             i++;
             continue;
@@ -86,13 +87,13 @@ function tokenize(source) {
             i++;
             continue;
         }
-        // comentário: '#' até o fim da linha
+        // comment: '#' to the end of the line
         if (c === "#") {
             while (i < source.length && source[i] !== "\n")
                 i++;
             continue;
         }
-        // literal de texto: "[^"\n]*"
+        // text literal: "[^"\n]*"
         if (c === '"') {
             let j = i + 1;
             while (j < source.length && source[j] !== '"' && source[j] !== "\n")
@@ -104,7 +105,7 @@ function tokenize(source) {
             i = j + 1;
             continue;
         }
-        // números: INT [0-9]+  |  REAL [0-9]+\.[0-9]+   (longest match)
+        // numbers: INT [0-9]+  |  REAL [0-9]+\.[0-9]+   (longest match)
         if (isDigit(c)) {
             let j = i;
             while (j < source.length && isDigit(source[j]))
@@ -124,7 +125,7 @@ function tokenize(source) {
             i = j;
             continue;
         }
-        // identificadores e palavras reservadas
+        // identifiers and reserved words
         if (isAlpha(c)) {
             let j = i;
             while (j < source.length && isAlphaNum(source[j]))
@@ -134,7 +135,7 @@ function tokenize(source) {
             i = j;
             continue;
         }
-        // operadores e delimitadores (longest match nos prefixos comuns)
+        // operators and delimiters: two-character lexemes first (longest match on shared prefixes)
         const two = source.slice(i, i + 2);
         switch (two) {
             case "->":
@@ -166,7 +167,7 @@ function tokenize(source) {
             case "-":
                 push(TokenType.MINUS, c);
                 i++;
-                continue; // '-' só após falhar '->'
+                continue; // only reached after '->' failed
             case "*":
                 push(TokenType.STAR, c);
                 i++;
@@ -203,6 +204,7 @@ function tokenize(source) {
                 push(TokenType.SEMI, c);
                 i++;
                 continue;
+            // a lone '=' or '!' is deliberately not a token: the longer match failed
             case "=":
                 throw new LexicalError("lexema inválido '='; em Dust use '->' para fluxo ou '==' para comparação", line);
             case "!":

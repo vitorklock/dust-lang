@@ -1,10 +1,11 @@
 "use strict";
-// parser.ts — Análise sintática por descida recursiva
-// Cada método corresponde a um não terminal da gramática G = (V, T, P, S).
-// A precedência de operadores está na estrutura Expr -> Term -> Factor.
+// parser.ts: recursive-descent syntactic analysis.
+// Each method corresponds to one non-terminal of the grammar G = (V, T, P, S).
+// Operator precedence is encoded in the chain Expr -> Term -> Factor.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Parser = exports.SyntaxError_ = void 0;
 const lexer_1 = require("./lexer");
+// Trailing underscore avoids shadowing the global SyntaxError
 class SyntaxError_ extends Error {
     line;
     constructor(message, line) {
@@ -47,7 +48,7 @@ class Parser {
         this.expect(lexer_1.TokenType.EOF, "fim do arquivo após ']'");
         return { kind: "Program", body };
     }
-    // <Block> ::= { <Stmt> }   — para ao ver ']' ou EOF
+    // <Block> ::= { <Stmt> }   (stops at ']' or EOF)
     parseBlock() {
         const stmts = [];
         while (!this.check(lexer_1.TokenType.RBRACK) && !this.check(lexer_1.TokenType.EOF)) {
@@ -55,7 +56,7 @@ class Parser {
         }
         return stmts;
     }
-    // <Stmt> — distinguível pelo primeiro token (LL(1))
+    // <Stmt>: every alternative is decided by its first token (LL(1))
     parseStmt() {
         const tok = this.peek();
         if (TYPE_TOKENS.has(tok.type))
@@ -95,7 +96,7 @@ class Parser {
             source = this.parseExpr();
         }
         this.expect(lexer_1.TokenType.ARROW, "'->' após a origem do fluxo");
-        // <Dest> ::= <Type> id | id | "lamp"
+        // <Dest> ::= <Type> id | id | "lamp"   (the destination decides the statement kind)
         const dest = this.peek();
         if (TYPE_TOKENS.has(dest.type)) {
             this.advance();
@@ -125,7 +126,7 @@ class Parser {
         const then = this.parseBlock();
         this.expect(lexer_1.TokenType.RBRACK, "']' fechando o bloco do observer");
         let else_ = null;
-        // 'torch [' inicia o else; 'torch <expr>' seria o próximo comando (inversor)
+        // 'torch [' opens the else; 'torch <expr>' would be the next statement (inverter operator)
         if (this.check(lexer_1.TokenType.TORCH) && this.peek(1).type === lexer_1.TokenType.LBRACK) {
             this.advance();
             this.expect(lexer_1.TokenType.LBRACK, "'[' abrindo o bloco do torch");
@@ -158,7 +159,7 @@ class Parser {
             const right = this.parseExpr();
             return { kind: "Compare", op, left, right, line: tok.line };
         }
-        return left; // condição "nua": validada na semântica (deve ser lever)
+        return left; // bare condition: semantic analysis requires it to be a lever
     }
     // <Expr> ::= <Term> { ("+" | "-") <Term> }
     parseExpr() {
